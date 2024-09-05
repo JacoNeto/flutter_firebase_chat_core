@@ -11,7 +11,7 @@ import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 
 await FirebaseChatCore.instance.createUserInFirestore(
   types.User(
-    firstName: 'John',
+    displayName: 'John',
     id: credential.user!.uid, // UID from Firebase Authentication
     imageUrl: 'https://i.pravatar.cc/300',
     lastName: 'Doe',
@@ -19,7 +19,7 @@ await FirebaseChatCore.instance.createUserInFirestore(
 );
 ```
 
-You can provide values like `firstName`, `imageUrl` and `lastName` if you're planning to have a screen with all users available for chat. The `id` is the only required field and you **need to** use the `uid` you get from the Firebase Authentication after you register a user. If you don't use Firebase for authentication, you can register a user using your custom `JWT` token, then call `FirebaseChatCore.instance.createUserInFirestore` as described above.
+You can provide values like `displayName`, `imageUrl` and `lastName` if you're planning to have a screen with all users available for chat. The `id` is the only required field and you **need to** use the `uid` you get from the Firebase Authentication after you register a user. If you don't use Firebase for authentication, you can register a user using your custom `JWT` token, then call `FirebaseChatCore.instance.createUserInFirestore` as described above.
 
 Aside from registration, you will need to log users in when appropriate, using available methods from Firebase Authentication, including the custom `JWT` token.
 

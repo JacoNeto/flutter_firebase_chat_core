@@ -14,7 +14,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   String? _email;
-  String? _firstName;
+  String? _displayName;
   FocusNode? _focusNode;
   String? _lastName;
   TextEditingController? _passwordController;
@@ -25,10 +25,10 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     super.initState();
     final faker = Faker();
-    _firstName = faker.person.firstName();
+    _displayName = faker.person.firstName();
     _lastName = faker.person.lastName();
     _email =
-        '${_firstName!.toLowerCase()}.${_lastName!.toLowerCase()}@${faker.internet.domainName()}';
+        '${_displayName!.toLowerCase()}.${_lastName!.toLowerCase()}@${faker.internet.domainName()}';
     _focusNode = FocusNode();
     _passwordController = TextEditingController(text: 'Qawsed1-');
     _usernameController = TextEditingController(
@@ -51,7 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       await FirebaseChatCore.instance.createUserInFirestore(
         types.User(
-          firstName: _firstName,
+          displayName: _displayName,
           id: credential.user!.uid,
           imageUrl: 'https://i.pravatar.cc/300?u=$_email',
           lastName: _lastName,

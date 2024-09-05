@@ -22,7 +22,9 @@ Future<Map<String, dynamic>> fetchUser(
   String? role,
 }) async {
   final doc = await instance.collection(usersCollectionName).doc(userId).get();
-
+  if (doc.data() == null) {
+    return {};
+  }
   final data = doc.data()!;
 
   data['createdAt'] = data['createdAt']?.millisecondsSinceEpoch;
@@ -91,7 +93,7 @@ Future<types.Room> processRoomDocument(
       );
 
       imageUrl = otherUser['imageUrl'] as String?;
-      name = '${otherUser['firstName'] ?? ''} ${otherUser['lastName'] ?? ''}'
+      name = '${otherUser['displayName'] ?? ''} ${otherUser['lastName'] ?? ''}'
           .trim();
     } catch (e) {
       // Do nothing if other user is not found, because he should be found.

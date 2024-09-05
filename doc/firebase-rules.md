@@ -20,7 +20,7 @@ service cloud.firestore {
       // Validates user's object format
       // Remove this if you don't plan to provide first or last names
       function isUserCorrect() {
-        return isSignedIn() && request.resource.data.firstName is string && request.resource.data.lastName is string;
+        return isSignedIn() && request.resource.data.displayName is string && request.resource.data.lastName is string;
       }
 
       // Checks that the document was created by currently logged in user
