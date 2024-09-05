@@ -95,92 +95,7 @@ class FirebaseChatCore {
     );
   }
 
-  /// Creates a direct chat for 2 people. Add [metadata] for any additional
-  /// custom data.
-  Future<types.Room> createRoom(
-    types.User otherUser, {
-    Map<String, dynamic>? metadata,
-  }) async {
-    final fu = firebaseUser;
-
-    if (fu == null) return Future.error('User does not exist');
-
-    // Sort two user ids array to always have the same array for both users,
-    // this will make it easy to find the room if exist and make one read only.
-    final userIds = [fu.uid, otherUser.id]..sort();
-
-    final roomQuery = await getFirebaseFirestore()
-        .collection(config.roomsCollectionName)
-        .where('type', isEqualTo: types.RoomType.direct.toShortString())
-        .where('userIds', isEqualTo: userIds)
-        .limit(1)
-        .get();
-
-    // Check if room already exist.
-    if (roomQuery.docs.isNotEmpty) {
-      final room = (await processRoomsQuery(
-        fu,
-        getFirebaseFirestore(),
-        roomQuery,
-        config.usersCollectionName,
-      ))
-          .first;
-
-      return room;
-    }
-
-    // To support old chats created without sorted array,
-    // try to check the room by reversing user ids array.
-    final oldRoomQuery = await getFirebaseFirestore()
-        .collection(config.roomsCollectionName)
-        .where('type', isEqualTo: types.RoomType.direct.toShortString())
-        .where('userIds', isEqualTo: userIds.reversed.toList())
-        .limit(1)
-        .get();
-
-    // Check if room already exist.
-    if (oldRoomQuery.docs.isNotEmpty) {
-      final room = (await processRoomsQuery(
-        fu,
-        getFirebaseFirestore(),
-        oldRoomQuery,
-        config.usersCollectionName,
-      ))
-          .first;
-
-      return room;
-    }
-
-    final currentUser = await fetchUser(
-      getFirebaseFirestore(),
-      fu.uid,
-      config.usersCollectionName,
-    );
-
-    final users = [types.User.fromJson(currentUser), otherUser];
-
-    // Create new room with sorted user ids array.
-    final room = await getFirebaseFirestore()
-        .collection(config.roomsCollectionName)
-        .add({
-      'createdAt': FieldValue.serverTimestamp(),
-      'imageUrl': null,
-      'metadata': metadata,
-      'name': null,
-      'type': types.RoomType.direct.toShortString(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'userIds': userIds,
-      'userRoles': null,
-    });
-
-    return types.Room(
-      id: room.id,
-      metadata: metadata,
-      type: types.RoomType.direct,
-      users: users,
-    );
-  }
-
+  
   /// Creates [types.User] in Firebase to store name and avatar used on
   /// rooms list.
   Future<void> createUserInFirestore(types.User user) async {
@@ -278,10 +193,14 @@ class FirebaseChatCore {
   }
 
   /// Returns a stream of changes in a room from Firebase.
-  Stream<types.Room> room(String roomId) {
-    final fu = firebaseUser;
-
-    if (fu == null) return const Stream.empty();
+  Stream<types.Room> room(String roomId, {String? uid}) {
+    String? usedUid;
+    if (uid == null) {
+      final fu = firebaseUser;
+      usedUid = fu?.uid;
+    } else {
+      usedUid = uid;
+    }
 
     return getFirebaseFirestore()
         .collection(config.roomsCollectionName)
@@ -290,7 +209,7 @@ class FirebaseChatCore {
         .asyncMap(
           (doc) => processRoomDocument(
             doc,
-            fu,
+            usedUid!,
             getFirebaseFirestore(),
             config.usersCollectionName,
           ),
@@ -307,23 +226,29 @@ class FirebaseChatCore {
   /// 3) Create an Index (Firestore Database -> Indexes tab) where collection ID
   /// is `rooms`, field indexed are `userIds` (type Arrays) and `updatedAt`
   /// (type Descending), query scope is `Collection`.
-  Stream<List<types.Room>> rooms({bool orderByUpdatedAt = false}) {
-    final fu = firebaseUser;
+  Stream<List<types.Room>> rooms({bool orderByUpdatedAt = false, String? uid}) {
+    String? usedUid;
+    if (uid == null) {
+      final fu = firebaseUser;
+      usedUid = fu?.uid;
+    } else {
+      usedUid = uid;
+    }
 
-    if (fu == null) return const Stream.empty();
+    if (usedUid == null) return const Stream.empty();
 
     final collection = orderByUpdatedAt
         ? getFirebaseFirestore()
             .collection(config.roomsCollectionName)
-            .where('userIds', arrayContains: fu.uid)
+            .where('userIds', arrayContains: usedUid)
             .orderBy('updatedAt', descending: true)
         : getFirebaseFirestore()
             .collection(config.roomsCollectionName)
-            .where('userIds', arrayContains: fu.uid);
+            .where('userIds', arrayContains: usedUid);
 
     return collection.snapshots().asyncMap(
           (query) => processRoomsQuery(
-            fu,
+            usedUid!,
             getFirebaseFirestore(),
             query,
             config.usersCollectionName,

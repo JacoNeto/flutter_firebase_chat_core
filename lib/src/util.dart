@@ -39,7 +39,7 @@ Future<Map<String, dynamic>> fetchUser(
 /// Returns a list of [types.Room] created from Firebase query.
 /// If room has 2 participants, sets correct room name and image.
 Future<List<types.Room>> processRoomsQuery(
-  User firebaseUser,
+  String firebaseUserId,
   FirebaseFirestore instance,
   QuerySnapshot<Map<String, dynamic>> query,
   String usersCollectionName,
@@ -47,7 +47,7 @@ Future<List<types.Room>> processRoomsQuery(
   final futures = query.docs.map(
     (doc) => processRoomDocument(
       doc,
-      firebaseUser,
+      firebaseUserId,
       instance,
       usersCollectionName,
     ),
@@ -59,7 +59,7 @@ Future<List<types.Room>> processRoomsQuery(
 /// Returns a [types.Room] created from Firebase document.
 Future<types.Room> processRoomDocument(
   DocumentSnapshot<Map<String, dynamic>> doc,
-  User firebaseUser,
+  String firebaseUserId,
   FirebaseFirestore instance,
   String usersCollectionName,
 ) async {
@@ -89,7 +89,7 @@ Future<types.Room> processRoomDocument(
   if (type == types.RoomType.direct.toShortString()) {
     try {
       final otherUser = users.firstWhere(
-        (u) => u['id'] != firebaseUser.uid,
+        (u) => u['id'] != firebaseUserId,
       );
 
       imageUrl = otherUser['imageUrl'] as String?;

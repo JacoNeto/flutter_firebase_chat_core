@@ -31,17 +31,17 @@ class UsersPage extends StatelessWidget {
   }
 
   void _handlePressed(types.User otherUser, BuildContext context) async {
-    final navigator = Navigator.of(context);
-    final room = await FirebaseChatCore.instance.createRoom(otherUser);
+    // final navigator = Navigator.of(context);
+    // final room = await FirebaseChatCore.instance.createRoom(otherUser);
 
-    navigator.pop();
-    await navigator.push(
-      MaterialPageRoute(
-        builder: (context) => ChatPage(
-          room: room,
-        ),
-      ),
-    );
+    // navigator.pop();
+    // await navigator.push(
+    //   MaterialPageRoute(
+    //     builder: (context) => ChatPage(
+    //       room: room,
+    //     ),
+    //   ),
+    // );
   }
 
   @override
